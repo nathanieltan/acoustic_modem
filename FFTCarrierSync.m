@@ -1,5 +1,19 @@
 % Open the file containing the received samples
-y = audioread('rx.wav');
+Fs = 44100;
+Fc = 5000;
+
+rx = audioread('rx.wav');
+
+rxI = zeros(length(rx),1);
+rxQ = zeros(length(rx),1);
+
+for k = 1:length(rx)
+    rxI(k) = rx(k) * cos(2*pi*(k/Fs)*Fc);
+    rxQ(k) = 1i*rx(k) * -sin(2*pi*(k/Fs)*Fc);
+end
+
+y = rxI + rxQ;
+%y = lowpass(y,3000, 8192);
 
 y_start = 1;
 y_end = length(y);
@@ -22,7 +36,7 @@ for n = length(y):-1:1
     end
 end
 
-y_pkt = y((y_start):(y_end+4));
+y_pkt = y((y_start):(y_end));
 
 mag_h_est = rms(abs(y_pkt));
 
@@ -75,8 +89,8 @@ title('Constellation');
 figure
 plot(real(x_adjust));
 title('Real Adjust');
-figure
+
+audiowrite('output.wav',x_adjust,Fs);
 %plot(imag(x_adjust));
 %title('Imaginary Adjust');
 %figure
-plot(real(TransmittedData));
