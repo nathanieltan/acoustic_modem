@@ -9,10 +9,14 @@ sample_offset = period/2;
 
 rx = audioread('rx.wav');
 
-tx = audioread('premod.wav');
+premod = audioread('premod.wav');
+tx = audioread('test1.wav');
+bits = audioread('test0.wav');
 
 rxI = zeros(length(rx),1);
 rxQ = zeros(length(rx),1);
+
+
 
 % Break received signal into real and imaginary components
 for k = 1:length(rx)
@@ -24,6 +28,10 @@ end
 y = rxI + rxQ;
 y = lowpass(y, 3000, Fs);
 
+[Ryx, lags] = xcorr(rx, tx);
+[mm, ii] = max(abs(Ryx));
+idx = lags(ii) + 1;
+
 % Trim audio of low-amplitude beginning and end sections
 y_start = 1;
 y_end = length(y);
@@ -31,7 +39,7 @@ keep_looking = true;
 abs_mean = abs(mean(real(y)));
 
 for n = 1:length(y)
-    if keep_looking && (abs(y(n)) >2e2 * abs_mean)
+    if keep_looking && (abs(y(n)) >3e2 * abs_mean)
         y_start = n;
         keep_looking = false;
     end
@@ -47,7 +55,7 @@ for n = length(y):-1:1
 end
 
 % Trimmed signal
-y_pkt = y((y_start):(y_end));
+y_pkt = y((15447):(15447+100000-1));
 
 mag_h_est = rms(abs(y_pkt));
 
@@ -65,8 +73,8 @@ for k = 1:length(y_est)/period
 end
 
 % Apply rotation to estimate transmitted values
-rotation = exp(1i*pi/4);
-%x_hat = x_hat.*rotation;
+rotation = exp(1i*pi);
+x_hat = (x_hat).*rotation;
 
 x_adjust = zeros(length(x_hat),1);
 
@@ -78,11 +86,11 @@ for k = 1:length(x_hat)
       x_adjust(k) = x_adjust(k) + 1;
    end
    
-   if imag(x_hat(k)) < 0
-       x_adjust(k) = x_adjust(k) - 1i;
-   elseif imag(x_hat(k)) > 0
-       x_adjust(k) = x_adjust(k) + 1i;
-   end
+%    if imag(x_hat(k)) < 0
+%        x_adjust(k) = x_adjust(k) - 1i;
+%    elseif imag(x_hat(k)) > 0
+%        x_adjust(k) = x_adjust(k) + 1i;
+%    end
        
 end
 
@@ -106,7 +114,9 @@ figure
 plot(real(x_adjust));
 title('Real Adjust');
 
-audiowrite('output.wav',x_adjust,Fs);
-%plot(imag(x_adjust));
-%title('Imaginary Adjust');
-%figure
+errors = 0;
+for k=1:length(bits)
+    if real(x_adjust(k)) * bits(k) < 0
+        errors = errors+1;
+    end
+end
