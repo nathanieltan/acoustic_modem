@@ -9,7 +9,7 @@ sample_offset = period/2;
 
 rx = audioread('rx.wav');
 
-tx = audioread('premod.wav');
+tx = audioread('
 
 rxI = zeros(length(rx),1);
 rxQ = zeros(length(rx),1);

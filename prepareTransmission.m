@@ -2,7 +2,7 @@ clear;
 
 Fc = 5000;
 
-N = 10000;
+N = 1000;
 
 % make N random bits of values +- 1
 bits = sign(randn(N,1));
@@ -33,6 +33,8 @@ Fs = 44100;
 
 
 audiowrite('test0.wav',bits,Fs);
+
+audiowrite('premod.wav',x_tx,Fs);
 
 for k = 1:length(x_tx)
     x_tx(k) = x_tx(k) * cos(2*pi*(k/Fs)*Fc);
